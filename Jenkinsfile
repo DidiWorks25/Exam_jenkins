@@ -22,6 +22,9 @@ pipeline {
             steps {
                 checkout scm
                 script {
+                    // Dérive BRANCH_NAME à partir de GIT_BRANCH (utile en Pipeline classique)
+                    env.BRANCH_NAME = env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
+                    echo "GIT_BRANCH brut: ${env.GIT_BRANCH} -> BRANCH_NAME: ${env.BRANCH_NAME}"
                     // Détermine l'environnement cible à partir de la branche
                     switch (env.BRANCH_NAME) {
                         case 'dev':
@@ -58,7 +61,7 @@ pipeline {
                     steps {
                         dir('movie-service') {
                             sh '''
-                                python3.8 -m venv venv
+                                python3 -m venv venv
                                 . venv/bin/activate
                                 pip install --upgrade pip
                                 pip install -r requirements.txt
@@ -71,7 +74,7 @@ pipeline {
                     steps {
                         dir('cast-service') {
                             sh '''
-                                python3.8 -m venv venv
+                                python3 -m venv venv
                                 . venv/bin/activate
                                 pip install --upgrade pip
                                 pip install -r requirements.txt
