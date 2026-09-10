@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // ID de credentials Jenkins (user/pass DockerHub)
         DOCKERHUB_USER        = 'djamel25go'
-        KUBECONFIG_CRED       = credentials('kubeconfig')             // ID de credentials Jenkins (fichier kubeconfig)
+        KUBECONFIG_CRED       = credentials('config')             // ID de credentials Jenkins (fichier config)
 
         MOVIE_IMAGE = "${DOCKERHUB_USER}/movie-service"
         CAST_IMAGE  = "${DOCKERHUB_USER}/cast-service"
@@ -39,7 +39,7 @@ pipeline {
                             env.MOVIE_NODEPORT = '30011'
                             env.CAST_NODEPORT = '30012'
                             break
-                        case 'master':
+                        case 'main':
                             env.TARGET_NAMESPACE = 'prod'
                             env.MOVIE_NODEPORT = '30013'
                             env.CAST_NODEPORT = '30014'
@@ -111,7 +111,7 @@ pipeline {
                 expression { env.BRANCH_NAME in ['dev', 'qa', 'staging'] }
             }
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig']) {
+                withKubeConfig([credentialsId: 'config']) {
                     sh """
                         kubectl create namespace ${TARGET_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
 
@@ -135,7 +135,7 @@ pipeline {
 
         stage('Approbation manuelle Prod') {
             when {
-                branch 'master'
+                branch 'main'
             }
             steps {
                 timeout(time: 24, unit: 'HOURS') {
@@ -146,10 +146,10 @@ pipeline {
 
         stage('Déploiement Prod') {
             when {
-                branch 'master'
+                branch 'main'
             }
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig']) {
+                withKubeConfig([credentialsId: 'config']) {
                     sh """
                         kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
 
